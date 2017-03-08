@@ -1,27 +1,56 @@
-var values = ["a", "b", "c", "d"];
+var pg = require('pg');
+const dbLoc = "postgres://postgres:2805@localhost:5432/carts";
 
+/*Instanteia o client do DB*/
+var db = new pg.Client(dbLoc);
+db.connect(function (err){
+	if (err) throw err;
+});
+
+/*METHODS*/
 module.exports = [
-/*GET ALL CARTS*/
+
+	//Retorna todos os carts
   {
     method: 'GET',
     path: '/carts',
     handler: function(request, reply) {
-    	console.log("Get carts");
- 		return reply('carts success');
+		console.log("Buscando todos os produtos");
+
+		db.query(`SELECT * FROM products`, function(err, result){
+			if (err) throw err;
+
+			//Se não encontrou resultado retornar com erro
+			if (!result.rows[0])
+				return reply({	errorMessage: 'Não foram encontrados produtos' });
+
+			//Retorna lista de itens
+			return reply(result.rows);
+		});
 	}
   },
 
-/*GET CART BY ID*/
+	//Dado um cartId, encontrar todos os produtos neste cart
   {
     method: 'GET',
-    path: '/carts/{id}',
+    path: '/carts/{cartId}',
     handler: function(request, reply) {
-    	const id = request.params.id;
+    	const cartId = request.params.cartId;
+    	var resposta = { cartId : cartId, itens: [] };
 
-    	console.log("Get cart " + id);
-    	var result = values[id] ? values[id] : "NOT FOUND";
+		console.log(`Buscando carrinho com id: ${cartId}`);
+    	db.query(`SELECT quantity,productId FROM cartItems WHERE cartId = ${cartId}`, function(err, result){
+    		if (err) throw err;
 
- 		return reply(result);
+    		//Se não encontrou resultado retornar com erro
+			if (!result.rows[0]){
+				console.log('cartId ' + cartId + ' não existe. Retornando carrinho vazio');
+				return reply(resposta);
+			}
+
+			resposta.itens = result.rows;
+			return reply(resposta);
+    	});
 	}
   },
 
