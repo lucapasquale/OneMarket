@@ -1,0 +1,13 @@
+{
+  "name": "onemarket-api-cart",
+  "version": "1.0.0",
+  "description": "Simple REST project with hapijs and postgresql.",
+  "main": "server.js",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+
+  }
+}
