@@ -1,16 +1,13 @@
 var Hapi = require('hapi');
 
-//create the server
+//Cria o server
 var server = new Hapi.Server();
 server.connection({ port : 3000 });
 
-server.route({
-	method: 'GET',
-	path: '/api',
-	handler: function(request, reply) {
-		reply({ 'api' : 'hello!' });
-	}
-});
+//Adiciona routes
+server.route(require('./routes/carts'));
+
+//Inicia o server
 server.start(function() {
 	console.log('Running at ' + server.info.uri);
 });
