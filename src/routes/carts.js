@@ -11,7 +11,7 @@ db.connect(function (err){
 /*METHODS*/
 module.exports = [
 
-	//Retorna todos os produtos
+//Retorna todos os produtos
   {
     method: 'GET',
     path: '/products',
@@ -31,7 +31,7 @@ module.exports = [
 	}
   },
 
-	//Dado um userId, encontrar todos os produtos no cart deste usuário
+//Dado um userId, encontrar todos os produtos no cart deste usuário
   {
     method: 'GET',
     path: '/orders/{userId}',
@@ -45,47 +45,47 @@ module.exports = [
     		//Se não encontrou resultado retornar com erro
 			if (!result.rows[0]){
 				console.log('userId: ' + userId + ' não existe. Retornando carrinho vazio');
-				return reply({ userId : userId, products: [] });
+				return reply({ userId : userId, orders: [] });
 			}
 
-			return reply({ userId : userId, products: result.rows });
+			return reply({ userId : userId, orders: result.rows });
     	});
 	}
   },
 
-/*Insere o carrinho*/
+//Insere o carrinho no DB
   {
     method: 'POST',
     path: '/orders',
     config: {
     	handler: function(request, reply) {
-    	var receivedCart = {
-    		userId: request.payload.userId,
-    		orders: request.payload.orders
-    	};
+	    	var receivedCart = {
+	    		userId: request.payload.userId,
+	    		orders: request.payload.orders
+	    	};
 
-		console.log(`Inserindo carrinho: ${JSON.stringify(receivedCart)}`);
+			console.log(`Inserindo carrinho: ${JSON.stringify(receivedCart)}`);
 
-		//Para cada item do carrinho atual, inserir na tabela
-		for(i = 0; i < receivedCart.orders.length; i++){
-			//Obtem o pedido do array
-			var order = {productId: receivedCart.orders[i].productId, quantity: receivedCart.orders[i].quantity}
+			//Para cada item do carrinho atual, inserir na tabela
+			for(i = 0; i < receivedCart.orders.length; i++){
+				//Obtem o pedido do array
+				var order = {productId: receivedCart.orders[i].productId, quantity: receivedCart.orders[i].quantity}
 
-			//Insere o pedido no DB na table orders
-			db.query(`INSERT INTO orders (userId, productId, quantity) 
-				VALUES (${receivedCart.userId}, ${order.productId}, ${order.quantity})`, function(err, result){
-					if (err) throw err;
-			});
-		};
+				//Insere o pedido no DB na table orders
+				db.query(`INSERT INTO orders (userId, productId, quantity) 
+					VALUES (${receivedCart.userId}, ${order.productId}, ${order.quantity})`, function(err, result){
+						if (err) throw err;
+				});
+			};
 
-		//Retorna com o valor do userId
-    	return reply({userId: receivedCart.userId});
+			//Retorna com o valor do userId
+	    	return reply({userId: receivedCart.userId});
 		},
 
 		//Validação do payload
 		validate: {
 			payload: {
-				userId: joi.required(),
+				userId: joi.number().required(),
 
 				orders: joi.array().items(
 					joi.object().keys({
@@ -99,42 +99,55 @@ module.exports = [
     
   },
 
+//Atualiza o carrinho que já está no DB
   {
     method: 'PUT',
-    path: '/carts',
-    handler: function(request, reply) {
-    	const cartId = request.params.cartId;
-    	var cart = request.payload;
+    path: '/orders',
+    config:{
+    	handler: function(request, reply) {
+	    	var receivedCart = {
+	    		userId: request.payload.userId,
+	    		orders: request.payload.orders
+	    	};
 
-    	//Checa se existe o payload e se existem a propriedades necessárias
-    	if(!cart || !cart.cartId || !cart.products){
-    		console.log("Erro no payload: " + cart);
-    		return reply({ errorMessage: "Erro no payload: " + cart });
-    	};
+			console.log(`Atualizando carrinho com id: ${receivedCart.userId}`);
 
-		console.log(`Atualizando carrinho com id: ${cartId}`);
-
-		//Deleta carrinho antigo do cartId
-		db.query(`DELETE FROM cartItems 
-			WHERE cartId = ${cartId}`, function(err, result){
-			if (err) throw err;
-		});
-
-		//Para cada item do carrinho atual, inserir na tabela
-		console.log("Products: " + cart.products);
-		console.log("Products 0 : " + cart.products[0].keys);
-		for(p = 0; p < cart.products; p++){
-			var prod = cart.products[i];
-			console.log(i + ": " + prod);
-
-			db.query(`INSERT INTO cartItems (cartId, productId, quantity) 
-				VALUES (${cartId}, ${prod.productId}, ${prod.quantity})`, function(err, result){
-					if (err) throw err;
+			//Deleta carrinho antigo do orders
+			db.query(`DELETE FROM orders WHERE userId = ${receivedCart.userId}`, function(err, result){
+				if (err) throw err;
 			});
-		};
 
-		//Retorna com o valor do cartId
-    	return reply(cartId);
-	}
+			console.log(`Novo carrinho: ${JSON.stringify(receivedCart.orders)}`);
+
+			//Para cada item do carrinho atual, inserir na tabela
+			for(i = 0; i < receivedCart.orders.length; i++){
+				//Obtem o pedido do array
+				var order = {productId: receivedCart.orders[i].productId, quantity: receivedCart.orders[i].quantity}
+
+				//Insere o pedido no DB na table orders
+				db.query(`INSERT INTO orders (userId, productId, quantity) 
+					VALUES (${receivedCart.userId}, ${order.productId}, ${order.quantity})`, function(err, result){
+						if (err) throw err;
+				});
+			};
+
+			//Retorna com o valor do cartId
+	    	return reply({userId: receivedCart.userId});
+		}, 
+
+		/*Validação do payload*/
+		validate: {
+			payload: {
+				userId: joi.number().required(),
+
+				orders: joi.array().items(
+					joi.object().keys({
+						productId: joi.number().required(),
+						quantity: joi.number().required()
+					})
+				)
+			}
+		}
+    }
   }
 ];
