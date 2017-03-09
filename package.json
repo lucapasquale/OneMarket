@@ -5,5 +5,10 @@
   "private": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "hapi": "^16.1.0",
+    "joi": "^10.2.2",
+    "pg": "^6.1.3"
   }
 }
