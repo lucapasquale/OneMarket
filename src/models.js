@@ -78,4 +78,4 @@ Order.sync({force: true}).then(function (){
 module.exports = {
 	Product: Product,
 	Order: Order
-}
+};

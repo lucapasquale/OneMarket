@@ -2,10 +2,10 @@ var joi = require('joi');
 var models = require('../models');
 
 
-/*METHODS*/
+// METHODS
 module.exports = [
 
-//GET - Retorna todos os produtos
+// GET - Retorna todos os produtos
   {
     method: 'GET',
     path: '/products',
@@ -13,9 +13,9 @@ module.exports = [
 
 		console.log("Buscando todos os produtos");
 		models.Product.findAll().then(function (project){
-			const result = {products: []};
+			var result = {products: []};
 
-			//Para cada instancia da resposta, adicionar o valor atual dos dados
+			// Para cada instancia da resposta, adicionar o valor atual dos dados
 			project.forEach(function (instance){
 				result.products.push(instance.dataValues);
 			});
@@ -24,7 +24,7 @@ module.exports = [
 	}
   },
 
-//GET - Dado um userId, encontrar todos os produtos no cart deste usuário
+// GET - Dado um userId, encontrar todos os produtos no cart deste usuário
   {
     method: 'GET',
     path: '/orders/{userId}',
@@ -35,7 +35,7 @@ module.exports = [
 		models.Order.findAll({where: {userId: _userId}}).then(function (project){
 			const result = { userId: _userId, orders: []};
 
-			//Para cada instancia da resposta, adicionar o valor atual dos dados
+			// Para cada instancia da resposta, adicionar o valor atual dos dados
 			project.forEach(function (instance){
 				result.orders.push(instance.dataValues);
 			});
@@ -44,7 +44,7 @@ module.exports = [
 	}
   },
 
-//POST - Insere o carrinho no DB
+// POST - Insere o carrinho no DB
   {
     method: 'POST',
     path: '/orders',
@@ -55,89 +55,90 @@ module.exports = [
 	    		orders: request.payload.orders
 	    	};
 
-			console.log(`Inserindo carrinho: ${JSON.stringify(_receivedCart)}`);
+	    	console.log(`Inserindo carrinho: ${JSON.stringify(_receivedCart)}`);
 
-			//Para cada item do carrinho atual, inserir na tabela
-			for(i = 0; i < _receivedCart.orders.length; i++){
-				//Obtem o pedido do array
-				var order = {
-					userId: _receivedCart.userId,
-					productId: _receivedCart.orders[i].productId,
-					quantity: _receivedCart.orders[i].quantity
-				};
-
-				//Insere o pedido no DB na table orders
-				models.Order.create(order);
+		// Para cada item do carrinho atual, inserir na tabela
+		for(i = 0; i < _receivedCart.orders.length; i++){
+			// Obtem o pedido do array
+			var order = {
+				userId: _receivedCart.userId,
+				productId: _receivedCart.orders[i].productId,
+				quantity: _receivedCart.orders[i].quantity
 			};
 
-			//Retorna com o valor do userId
+			// Insere o pedido no DB na table orders
+			models.Order.create(order);
+		}
+
+			// Retorna com o valor do userId
 	    	return reply({userId: _receivedCart.userId});
 		},
 
-		//Validação do payload
-		validate: {
-			payload: {
-				userId: joi.number().required(),
+	// Validação do payload
+	validate: {
+		payload: {
+			userId: joi.number().required(),
 
-				orders: joi.array().items(
-					joi.object().keys({
-						productId: joi.number().required(),
-						quantity: joi.number().required()
-					})
-				)
-			}
+			orders: joi.array().items(
+				joi.object().keys({
+					productId: joi.number().required(),
+					quantity: joi.number().required()
+				})
+			)
 		}
+	}
     }
     
   },
 
-//Atualiza o carrinho que já está no DB
+// Atualiza o carrinho que já está no DB
   {
     method: 'PUT',
     path: '/orders',
     config:{
     	handler: function(request, reply) {
+
+    		console.log(`Atualizando carrinho: ${_receivedCart}`);
+
 	    	var _receivedCart = {
 	    		userId: request.payload.userId,
 	    		orders: request.payload.orders
 	    	};
 
-			console.log(`Atualizando carrinho: ${_receivedCart}`);
+			// Deleta carrinho antigo do orders
+			models.Order.destroy({where: {userId: _receivedCart.userId}}).then(function (project) {
 
-			//Deleta carrinho antigo do orders
-			models.Order.destroy({where: {userId: _receivedCart.userId}}).then(function (project){
-
-				//Para cada item do carrinho atual, inserir na tabela
+				// Para cada item do carrinho atual, inserir na tabela
 				for(i = 0; i < _receivedCart.orders.length; i++){
-					//Obtem o pedido do array
+					// Obtem o pedido do array
 					var order = {
 						userId: _receivedCart.userId,
 						productId: _receivedCart.orders[i].productId,
 						quantity: _receivedCart.orders[i].quantity
 					};
 
-					//Insere o pedido no DB na table orders
+					// Insere o pedido no DB na table orders
 					models.Order.create(order);
-				};
+				}
 			});
 
-			//Retorna com o valor do cartId
+			// Retorna com o valor do cartId
 	    	return reply({userId: _receivedCart.userId});
 		}, 
 
-		/*Validação do payload*/
-		validate: {
-			payload: {
-				userId: joi.number().required(),
+	// Validação do payload
+	validate: {
+		payload: {
+			userId: joi.number().required(),
 
-				orders: joi.array().items(
-					joi.object().keys({
-						productId: joi.number().required(),
-						quantity: joi.number().required()
-					})
-				)
-			}
+			orders: joi.array().items(
+				joi.object().keys({
+					productId: joi.number().required(),
+					quantity: joi.number().required()
+				})
+			)
 		}
+	}
     }
   }
 ];
