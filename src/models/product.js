@@ -1,4 +1,5 @@
-import Sequelize from 'sequelize';
+var Sequelize = require('sequelize');
+// import Sequelize from 'sequelize';
 
 
 module.exports = function(sequelize, DataTypes) {
@@ -7,24 +8,6 @@ module.exports = function(sequelize, DataTypes) {
 		name: {
 			type: Sequelize.STRING
 		}
-	});
-
-  	// Sincroniza com o DB, cria uma nova tabela e insere dados base
-	Product.sync({force: true}).then(function (){
-		Product.bulkCreate([
-			{
-				name: "q"
-			},
-			{
-				name: "w"
-			},
-			{
-				name: "e"
-			},
-			{
-				name: "r"
-			}
-		]);
 	});
 
   return Product;

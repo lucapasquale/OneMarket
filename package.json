@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node bootstrap.js"
+    "start": "node server.js"
   },
   "dependencies": {
     "babel-core": "^6.23.1",

@@ -1,38 +1,50 @@
-import joi from 'joi';
-import models from '../models';
+var joi = require('joi');
+var models = require('../models');
+// import joi from 'joi';
+// import models from '../models';
 
 // METHODS
 module.exports = [
 
 // GET - Retorna todos os produtos
-  {
-    method: 'GET',
-    path: '/products',
-    handler: function(request, reply) {
+	{
+		method: 'GET',
+		path: '/test',
+		handler: function(request, reply) {
+			return reply('Hello World!');
+		}
+	},
 
-		console.log("Buscando todos os produtos");
-		models.product.findAll().then(function (project){
-			var result = {products: []};
+	{
+		method: 'GET',
+		path: '/products',
+		handler: function(request, reply) {
 
-			// Para cada instancia da resposta, adicionar o valor atual dos dados
-			project.forEach(function (instance){
-				result.products.push(instance.dataValues);
+			console.log("Buscando todos os produtos");
+			models.product.findAll().then(function (project){
+				var result = {products: []};
+
+				// Para cada instancia da resposta, adicionar o valor atual dos dados
+				project.forEach(function (instance){
+					result.products.push(instance.dataValues);
+				});
+				return reply(result);
+			}, function(err) {
+				console.log(err);
 			});
-			return reply(result);
-		});
-	}
-  },
+		}
+	},
 
-// GET - Dado um userId, encontrar todos os produtos no cart deste usuário
-  {
-    method: 'GET',
-    path: '/orders/{userId}',
-    handler: function(request, reply) {
-    	const _userId = request.params.userId;
+	// GET - Dado um userId, encontrar todos os produtos no cart deste usuário
+	{
+	method: 'GET',
+	path: '/orders/{userId}',
+	handler: function(request, reply) {
+		const _userId = request.params.userId;
 
 		console.log(`Buscando carrinho com id: ${_userId}`);
-		
-		models.order.findAll({where: {userId: _userId}}).then(function (project){
+
+		models.order.findAll({where: {userId: _userId}}).then(function (project) {
 			const result = { userId: _userId, orders: []};
 
 			// Para cada instancia da resposta, adicionar o valor atual dos dados
@@ -40,16 +52,18 @@ module.exports = [
 				result.orders.push(instance.dataValues);
 			});
 			return reply(result);
+		}, function(err) {
+			console.log(err);
 		});
 	}
-  },
+	},
 
-// POST - Insere o carrinho no DB
-  {
-    method: 'POST',
-    path: '/orders',
-    config: {
-    	handler: function(request, reply) {
+	// POST - Insere o carrinho no DB
+	{
+	method: 'POST',
+	path: '/orders',
+	config: {
+		handler: function(request, reply) {
 	    	const _receivedCart = {
 	    		userId: request.payload.userId,
 	    		orders: request.payload.orders
@@ -88,15 +102,15 @@ module.exports = [
 				)
 			}
 		}
-    } 
-  },
+	} 
+	},
 
-// Atualiza o carrinho que já está no DB
-  {
-    method: 'PUT',
-    path: '/orders',
-    config:{
-    	handler: function(request, reply) {
+	// Atualiza o carrinho que já está no DB
+	{
+	method: 'PUT',
+	path: '/orders',
+	config:{
+		handler: function(request, reply) {
 	    	const _receivedCart = {
 	    		userId: request.payload.userId,
 	    		orders: request.payload.orders
@@ -139,6 +153,6 @@ module.exports = [
 				)
 			}
 		}
-    }
-  }
+	}
+	}
 ];
