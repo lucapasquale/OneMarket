@@ -1,5 +1,5 @@
 var joi = require('joi');
-var models = require('../models');
+var models = require('../models/models');
 // import joi from 'joi';
 // import models from '../models';
 
@@ -11,51 +11,38 @@ module.exports = [
 		method: 'GET',
 		path: '/test',
 		handler: function(request, reply) {
+
 			return reply('Hello World!');
 		}
 	},
 
+	// GET - Dado um username, encontrar todos os produtos no cart deste usuário
 	{
 		method: 'GET',
-		path: '/products',
+		path: '/cart/{username}',
 		handler: function(request, reply) {
+			const _username = request.params.username;
 
-			console.log("Buscando todos os produtos");
-			models.product.findAll().then(function (project){
-				var result = {products: []};
+			console.log(`Buscando carrinho para o user: ${_username}`);
 
-				// Para cada instancia da resposta, adicionar o valor atual dos dados
-				project.forEach(function (instance){
-					result.products.push(instance.dataValues);
-				});
-				return reply(result);
-			}, function(err) {
+			const query = {
+				where: {
+					username: _username
+				},
+				include: [models.product]
+			};
+
+			models.cart.findOne(query).then(function (cart){
+				if (!cart){
+					console.log('Não foi encontrado cart para ' + _username);
+					return reply('Não foi encontrado cart para ' + _username);
+				} else {
+					return reply(cart.dataValues);
+				}
+			}, function(err){
 				console.log(err);
 			});
 		}
-	},
-
-	// GET - Dado um userId, encontrar todos os produtos no cart deste usuário
-	{
-	method: 'GET',
-	path: '/orders/{userId}',
-	handler: function(request, reply) {
-		const _userId = request.params.userId;
-
-		console.log(`Buscando carrinho com id: ${_userId}`);
-
-		models.order.findAll({where: {userId: _userId}}).then(function (project) {
-			const result = { userId: _userId, orders: []};
-
-			// Para cada instancia da resposta, adicionar o valor atual dos dados
-			project.forEach(function (instance){
-				result.orders.push(instance.dataValues);
-			});
-			return reply(result);
-		}, function(err) {
-			console.log(err);
-		});
-	}
 	},
 
 	// POST - Insere o carrinho no DB

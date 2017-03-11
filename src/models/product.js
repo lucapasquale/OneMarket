@@ -7,8 +7,16 @@ module.exports = function(sequelize, DataTypes) {
   	const Product = sequelize.define('product', {
 		name: {
 			type: Sequelize.STRING
+		},
+		description: {
+			type: Sequelize.STRING
+		},
+		category: {
+			type: Sequelize.STRING
 		}
 	});
 
+  	Product.sync({ force: true });
+  	
   return Product;
 };

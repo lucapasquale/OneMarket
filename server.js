@@ -1,7 +1,7 @@
 require('babel-core/register');
 
 var Hapi = require('hapi');
-var models = require('./src/models');
+var models = require('./src/models/models');
 // import Hapi from 'hapi';
 // import models from './src/models';
 
