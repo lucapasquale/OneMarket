@@ -31,9 +31,7 @@ const Product = sequelize.define('product', {
 
 // Model do Cart
 const Cart = sequelize.define('cart', {
-	username: {
-		type: Sequelize.STRING
-	}
+
 });
 
 // Relations
@@ -43,7 +41,6 @@ Product.belongsTo(Cart);
 // Sincroniza DB e cria arquivos base
 sequelize.sync({force: true}).then(function () {
 	Cart.create({
-		username: 'luca',
 		products: [{
 			name: 'A',
 			description: 'aa',

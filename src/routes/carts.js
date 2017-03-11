@@ -19,23 +19,16 @@ module.exports = [
 	// GET - Dado um username, encontrar todos os produtos no cart deste usuário
 	{
 		method: 'GET',
-		path: '/cart/{username}',
+		path: '/cart/{userId}',
 		handler: function(request, reply) {
-			const _username = request.params.username;
+			const _userId = request.params.userId;
 
-			console.log(`Buscando carrinho para o user: ${_username}`);
+			console.log(`\n# Buscando carrinho para o userId: ${_userId}`);
 
-			const query = {
-				where: {
-					username: _username
-				},
-				include: [models.product]
-			};
-
-			models.cart.findOne(query).then(function (cart){
+			models.cart.findById(_userId, {include: [models.product]} ).then(function (cart){
 				if (!cart){
-					console.log('Não foi encontrado cart para ' + _username);
-					return reply('Não foi encontrado cart para ' + _username);
+					console.log('Não foi encontrado cart para ' + _userId);
+					return reply('Não foi encontrado cart para ' + _userId);
 				} else {
 					return reply(cart.dataValues);
 				}
@@ -48,42 +41,50 @@ module.exports = [
 	// POST - Insere o carrinho no DB
 	{
 	method: 'POST',
-	path: '/orders',
+	path: '/cart',
 	config: {
 		handler: function(request, reply) {
-	    	const _receivedCart = {
-	    		userId: request.payload.userId,
-	    		orders: request.payload.orders
-	    	};
+			const _userId = request.payload.id;
+			const _products = request.payload.products;
 
-	    	console.log(`Inserindo carrinho: ${JSON.stringify(_receivedCart)}`);
+			console.log(`\n# Inserindo carrinho com userId: ${_userId}`);
 
-		// Para cada item do carrinho atual, inserir na tabela
-		let i;
-		for(i = 0; i < _receivedCart.orders.length; i++){
-			// Obtem o pedido do array
-			const order = {
-				userId: _receivedCart.userId,
-				productId: _receivedCart.orders[i].productId,
-				quantity: _receivedCart.orders[i].quantity
-			};
+			// Se já existe o cart para o usuário, sair
+			models.cart.findById(_userId).then(function (cart) {
+				if(cart){
+					console.log('Cart for userId: ' + _userId + ' already exists!');
+					return reply('Cart for userId: ' + _userId + ' already exists!');
+				}
 
-			// Insere o pedido no DB na table orders
-			models.order.create(order);
-		}
+				// Adiciona o cartId para cada produto
+		    	_products.forEach(function (product) {
+		    		product.cartId = _userId;
+		    	});
 
-			// Retorna com o valor do userId
-	    	return reply({userId: _receivedCart.userId});
+		    	// Cria o cart e salva no DB
+		    	models.cart.create({
+		    		id: _userId,
+		    		products: _products
+		    	},{
+		    		include: [models.product]
+		    	});
+
+				// Retorna o valor do userId
+			 	return reply({id: _userId});
+			});
 		},
 
 		// Validação do payload
 		validate: {
 			payload: {
-				userId: joi.number().required(),
+				id: joi.number().required(),
 
-				orders: joi.array().items(
+				products: joi.array().items(
 					joi.object().keys({
-						productId: joi.number().required(),
+						id: joi.number(),
+						name: joi.string().required(),
+						description: joi.string().required(),
+						price: joi.number().required(),
 						quantity: joi.number().required()
 					})
 				)
