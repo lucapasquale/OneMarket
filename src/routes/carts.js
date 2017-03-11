@@ -96,46 +96,59 @@ module.exports = [
 	// Atualiza o carrinho que já está no DB
 	{
 	method: 'PUT',
-	path: '/orders',
+	path: '/cart',
 	config:{
 		handler: function(request, reply) {
-	    	const _receivedCart = {
-	    		userId: request.payload.userId,
-	    		orders: request.payload.orders
-	    	};
+	    	const _userId = request.payload.id;
+			const _products = request.payload.products;
 
-	    	console.log(`Atualizando carrinho: ${_receivedCart}`);
+	    	console.log(`\n# Atualizando carrinho com userId: ${_userId}`);
 
-			// Deleta carrinho antigo do orders
-			models.order.destroy({where: {userId: _receivedCart.userId}}).then(function (project) {
-
-				// Para cada item do carrinho atual, inserir na tabela
-				let i;
-				for(i = 0; i < _receivedCart.orders.length; i++){
-					// Obtem o pedido do array
-					const order = {
-						userId: _receivedCart.userId,
-						productId: _receivedCart.orders[i].productId,
-						quantity: _receivedCart.orders[i].quantity
-					};
-
-					// Insere o pedido no DB na table orders
-					models.order.create(order);
+			// Deleta os produtos com cartId = userId
+			models.product.destroy({
+				where: {
+					cartId: _userId
 				}
-			});
+			})
+			// Deleta carrinho antigo do orders
+			.then(function () {
+				models.cart.destroy({
+					where: {
+						id: _userId,
+					}
+				});
+			})
+			// Cria o novo cart e salva no DB
+			.then(function () {
+				// Adiciona o cartId para cada produto
+		    	_products.forEach(function (product) {
+		    		product.cartId = _userId;
+		    	});
 
-			// Retorna com o valor do cartId
-	    	return reply({userId: _receivedCart.userId});
+		    	// Cria o cart
+		    	models.cart.create({
+		    		id: _userId,
+		    		products: _products
+		    	},{
+		    		include: [models.product]
+		    	});
+
+				// Retorna o valor do userId
+			 	return reply({id: _userId});
+			});
 		}, 
 
 		// Validação do payload
 		validate: {
 			payload: {
-				userId: joi.number().required(),
+				id: joi.number().required(),
 
-				orders: joi.array().items(
+				products: joi.array().items(
 					joi.object().keys({
-						productId: joi.number().required(),
+						id: joi.number(),
+						name: joi.string().required(),
+						description: joi.string().required(),
+						price: joi.number().required(),
 						quantity: joi.number().required()
 					})
 				)
