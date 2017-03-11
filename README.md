@@ -3,15 +3,13 @@ Cart API with Hapi.js and PostgreSQL on ElasticBeanstalk
 
 ## Links:
 
-GET - http://default-environment.ypmxh7rj5r.us-east-1.elasticbeanstalk.com/test
-
 GET - http://default-environment.ypmxh7rj5r.us-east-1.elasticbeanstalk.com/products
 
-GET - http://default-environment.ypmxh7rj5r.us-east-1.elasticbeanstalk.com/orders/5
+GET - http://default-environment.ypmxh7rj5r.us-east-1.elasticbeanstalk.com/cart/5
 
-POST - http://default-environment.ypmxh7rj5r.us-east-1.elasticbeanstalk.com/orders
+POST - http://default-environment.ypmxh7rj5r.us-east-1.elasticbeanstalk.com/cart
 
-PUT - http://default-environment.ypmxh7rj5r.us-east-1.elasticbeanstalk.com/orders
+PUT - http://default-environment.ypmxh7rj5r.us-east-1.elasticbeanstalk.com/cart
 
 
 ## Example Body:

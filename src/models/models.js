@@ -1,8 +1,9 @@
 var Sequelize = require('sequelize');
 // import Sequelize from 'sequelize';
 
-const sequelize = new Sequelize('postgres://postgres:2805@localhost:5432/carts');
-// const sequelize = new Sequelize('postgres://lucapasquale:luca1234@cartsapi.c5v1qh5ovkon.us-east-1.rds.amazonaws.com:5432/carts');
+const uri = process.env.AWS ? 'postgres://lucapasquale:luca1234@cartsapi.c5v1qh5ovkon.us-east-1.rds.amazonaws.com:5432/carts' : 'postgres://postgres:2805@localhost:5432/carts';
+
+const sequelize = new Sequelize(uri);
 sequelize
   .authenticate()
   .then(function(err) {

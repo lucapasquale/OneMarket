@@ -6,13 +6,30 @@ var models = require('../models/models');
 // METHODS
 module.exports = [
 
-// GET - Retorna todos os produtos
+	// GET - Hello World
 	{
 		method: 'GET',
 		path: '/test',
 		handler: function(request, reply) {
 
 			return reply('Hello World!');
+		}
+	},
+
+	// GET - Obtem todos os produtos listados
+	{
+		method: 'GET',
+		path: '/products',
+		handler: function(request, reply) {
+			console.log('\n# Buscando todos os produtos');
+
+			models.product.findAll().then(function (products){
+				if (products){
+					return reply(products);
+				} else {
+					return reply('Erro ao buscar os produtos!');
+				}
+			});
 		}
 	},
 
@@ -52,8 +69,8 @@ module.exports = [
 			// Se já existe o cart para o usuário, sair
 			models.cart.findById(_userId).then(function (cart) {
 				if(cart){
-					console.log('Cart for userId: ' + _userId + ' already exists!');
-					return reply('Cart for userId: ' + _userId + ' already exists!');
+					console.log('Cart para o usuário ' + _userId + ' já existe!');
+					return reply('Cart para o usuário ' + _userId + ' já existe!');
 				}
 
 				// Adiciona o cartId para cada produto
