@@ -1,7 +1,5 @@
-var joi = require('joi');
-var models = require('../models/models');
-// import joi from 'joi';
-// import models from '../models';
+import joi from 'joi';
+import models from '../models/models';
 
 // METHODS
 module.exports = [
@@ -20,16 +18,15 @@ module.exports = [
 	{
 		method: 'GET',
 		path: '/products',
-		handler: function(request, reply) {
+		handler: async function(request, reply) {
+
 			console.log('\n# Buscando todos os produtos');
 
-			models.product.findAll().then(function (products){
-				if (products){
-					return reply(products);
-				} else {
-					return reply('Erro ao buscar os produtos!');
-				}
-			});
+			let products = await models.product.findAll();
+			if (products) return reply(products);
+			
+			// Caso não encontre nenhum produto
+			else return reply('Erro ao buscar os produtos!');
 		}
 	},
 
@@ -37,21 +34,17 @@ module.exports = [
 	{
 		method: 'GET',
 		path: '/cart/{userId}',
-		handler: function(request, reply) {
+		handler: async function(request, reply) {
 			const _userId = request.params.userId;
 
 			console.log(`\n# Buscando carrinho para o userId: ${_userId}`);
 
-			models.cart.findById(_userId, {include: [models.product]} ).then(function (cart){
-				if (!cart){
-					console.log('Não foi encontrado cart para ' + _userId);
-					return reply('Não foi encontrado cart para ' + _userId);
-				} else {
-					return reply(cart.dataValues);
-				}
-			}, function(err){
-				console.log(err);
-			});
+			// Busca o cart no DB pela userId, e inclui os produtos associados a ele
+			let cart = await models.cart.findById(_userId, {include: [models.product]});
+			if (cart) return reply(cart.dataValues);
+
+			// Caso não encontre o cart para o userId
+			else return reply('Não foi encontrado cart para ' + _userId);
 		}
 	},
 
@@ -60,26 +53,24 @@ module.exports = [
 	method: 'POST',
 	path: '/cart',
 	config: {
-		handler: function(request, reply) {
+		handler: async function(request, reply) {
 			const _userId = request.payload.id;
 			const _products = request.payload.products;
 
 			console.log(`\n# Inserindo carrinho com userId: ${_userId}`);
 
 			// Se já existe o cart para o usuário, sair
-			models.cart.findById(_userId).then(function (cart) {
-				if(cart){
-					console.log('Cart para o usuário ' + _userId + ' já existe!');
-					return reply('Cart para o usuário ' + _userId + ' já existe!');
-				}
+			let cart = await models.cart.findById(_userId);
+			if (cart) return reply('Cart para o usuário ' + _userId + ' já existe!');
 
+			else {
 				// Adiciona o cartId para cada produto
 		    	_products.forEach(function (product) {
 		    		product.cartId = _userId;
 		    	});
 
 		    	// Cria o cart e salva no DB
-		    	models.cart.create({
+		    	await models.cart.create({
 		    		id: _userId,
 		    		products: _products
 		    	},{
@@ -88,7 +79,7 @@ module.exports = [
 
 				// Retorna o valor do userId
 			 	return reply({id: _userId});
-			});
+			}
 		},
 
 		// Validação do payload
@@ -115,44 +106,34 @@ module.exports = [
 	method: 'PUT',
 	path: '/cart',
 	config:{
-		handler: function(request, reply) {
+		handler: async function(request, reply) {
 	    	const _userId = request.payload.id;
 			const _products = request.payload.products;
 
 	    	console.log(`\n# Atualizando carrinho com userId: ${_userId}`);
 
 			// Deleta os produtos com cartId = userId
-			models.product.destroy({
-				where: {
-					cartId: _userId
-				}
-			})
-			// Deleta carrinho antigo do orders
-			.then(function () {
-				models.cart.destroy({
-					where: {
-						id: _userId,
-					}
-				});
-			})
-			// Cria o novo cart e salva no DB
-			.then(function () {
-				// Adiciona o cartId para cada produto
-		    	_products.forEach(function (product) {
-		    		product.cartId = _userId;
-		    	});
+			await models.product.destroy({where: {cartId: _userId}});
 
-		    	// Cria o cart
-		    	models.cart.create({
-		    		id: _userId,
-		    		products: _products
-		    	},{
-		    		include: [models.product]
-		    	});
+			// Deleta cart antigo
+			await models.cart.destroy({where: {id: _userId}});
+			
 
-				// Retorna o valor do userId
-			 	return reply({id: _userId});
-			});
+			// Adiciona o cartId para cada produto
+	    	_products.forEach(function (product) {
+	    		product.cartId = _userId;
+	    	});
+
+	    	// Cria o cart e salva no DB
+	    	await models.cart.create({
+	    		id: _userId,
+	    		products: _products
+	    	},{
+	    		include: [models.product]
+	    	});
+
+			// Retorna o valor do userId
+		 	return reply({id: _userId});
 		}, 
 
 		// Validação do payload

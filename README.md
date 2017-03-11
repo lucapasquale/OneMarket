@@ -15,20 +15,25 @@ PUT - http://default-environment.ypmxh7rj5r.us-east-1.elasticbeanstalk.com/cart
 ## Example Body:
 
 {
-	"userId":"5",
-	"orders":
-	[
-		{
-			"quantity":2,
-			"productId":3
-		},
-		{
-			"quantity":4,
-			"productId":1
-		},
-		{
-			"quantity":1,
-			"productId":2
-		}
-	]
+  "id": 5,
+  "products": [
+    {
+      "name": "D",
+      "description": "dddd",
+      "price": 1.1,
+      "quantity": 1
+    },
+    {
+      "name": "C",
+      "description": "ccc",
+      "price": 3.0,
+      "quantity": 2
+    },
+    {
+      "name": "E",
+      "description": "eeeee",
+      "price": 0.5,
+      "quantity": 4
+    }
+  ]
 }
