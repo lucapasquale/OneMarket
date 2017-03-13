@@ -14,3 +14,5 @@ server.start(() => {
   console.log(`Running at ${server.info.uri}`);
   console.log('');
 });
+
+module.exports = server;

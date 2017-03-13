@@ -7,7 +7,7 @@
     "url": "git://github.com/lucapasquale/OneMarket"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "./node_modules/.bin/tape -r babel-register ./src/test/cart.test.js",
     "start": "node bootstrap.js"
   },
   "dependencies": {
@@ -24,6 +24,7 @@
     "babel-eslint": "^7.1.1",
     "eslint": "^3.17.1",
     "eslint-config-airbnb-base": "^11.1.1",
-    "eslint-plugin-import": "^2.2.0"
+    "eslint-plugin-import": "^2.2.0",
+    "tape": "^4.6.3"
   }
 }

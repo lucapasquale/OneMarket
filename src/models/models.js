@@ -2,7 +2,10 @@ import Sequelize from 'sequelize';
 
 const uri = process.env.AWS || 'postgres://postgres:2805@localhost:5432/carts';
 
-const sequelize = new Sequelize(uri);
+const sequelize = new Sequelize(uri, {
+  logging: !process.env.TEST_ENVIROMENT,
+});
+
 sequelize
   .authenticate()
   .then(() => (
