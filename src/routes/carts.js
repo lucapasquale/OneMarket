@@ -20,8 +20,8 @@ module.exports = [
     async handler(request, reply) {
       console.log('\n# Buscando todos os produtos');
 
-      const products = await models.product.findAll();
-      if (products) return reply(products);
+      const products = await models.product.findAll({ attributes: ['name', 'description', 'price', 'quantity'] });
+      if (products) return reply({ products });
 
       // Caso não encontre nenhum produto
       return reply('Erro ao buscar os produtos!');
@@ -37,8 +37,15 @@ module.exports = [
 
       console.log(`\n# Buscando carrinho para o userId: ${userId}`);
 
+      // Configura a query para incluir os produtos e somente alguns atributos
+      const query = {
+        where: { id: userId },
+        include: { model: models.product, attributes: ['name', 'description', 'price', 'quantity'] },
+        attributes: ['id'],
+      };
+
       // Busca o cart no DB pela userId, e inclui os produtos associados a ele
-      const cart = await models.cart.findById(userId, { include: [models.product] });
+      const cart = await models.cart.findOne(query);
       if (cart) return reply(cart.dataValues);
 
       // Caso não encontre o cart para o userId
